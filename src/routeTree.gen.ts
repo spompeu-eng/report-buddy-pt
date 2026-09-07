@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RelatorioRouteImport } from './routes/relatorio'
 import { Route as FluxosIndexRouteImport } from './routes/fluxos.index'
 import { Route as FluxosSlugRouteImport } from './routes/fluxos.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatorioRoute = RelatorioRouteImport.update({
+  id: '/relatorio',
+  path: '/relatorio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FluxosIndexRoute = FluxosIndexRouteImport.update({
@@ -31,30 +37,34 @@ const FluxosSlugRoute = FluxosSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos/': typeof FluxosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos': typeof FluxosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos/': typeof FluxosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/fluxos/$slug' | '/fluxos/'
+  fullPaths: '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/fluxos/$slug' | '/fluxos'
-  id: '__root__' | '/' | '/fluxos/$slug' | '/fluxos/'
+  to: '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos'
+  id: '__root__' | '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RelatorioRoute: typeof RelatorioRoute
   FluxosSlugRoute: typeof FluxosSlugRoute
   FluxosIndexRoute: typeof FluxosIndexRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorio': {
+      id: '/relatorio'
+      path: '/relatorio'
+      fullPath: '/relatorio'
+      preLoaderRoute: typeof RelatorioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fluxos/': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RelatorioRoute: RelatorioRoute,
   FluxosSlugRoute: FluxosSlugRoute,
   FluxosIndexRoute: FluxosIndexRoute,
 }
