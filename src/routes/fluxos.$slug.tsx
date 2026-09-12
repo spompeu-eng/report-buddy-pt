@@ -30,7 +30,56 @@ export const Route = createFileRoute("/fluxos/$slug")({
 });
 
 function PaginaFluxo() {
-  const flow = Route.useLoaderData();
+  const flowBase = Route.useLoaderData();
+  const guardadoQuery = useFlowOverride(flowBase.slug);
+  const adminQuery = useEstadoAdmin();
+  const guardar = useServerFn(guardarOverride);
+  const repor = useServerFn(reporOverride);
+
+  const [edicao, setEdicao] = useState(false);
+  const [rascunho, setRascunho] = useState<FlowOverride>({});
+  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [aGuardar, setAGuardar] = useState(false);
+  const [mensagem, setMensagem] = useState<string | null>(null);
+
+  const guardado = guardadoQuery.data ?? {};
+  useEffect(() => {
+    if (!edicao) setRascunho(guardado);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guardadoQuery.dataUpdatedAt, edicao]);
+
+  const override = edicao ? rascunho : guardado;
+  const flow = aplicarOverride(flowBase, override);
+  const admin = adminQuery.data?.admin === true;
+
+  async function aoGuardar() {
+    setAGuardar(true);
+    setMensagem(null);
+    try {
+      await guardar({ data: { slug: flowBase.slug, override: rascunho } });
+      await guardadoQuery.refetch();
+      setMensagem("Alterações guardadas e visíveis para todos.");
+    } catch {
+      setMensagem("Não foi possível guardar. Verifique a sessão de administrador.");
+    } finally {
+      setAGuardar(false);
+    }
+  }
+
+  async function aoRepor() {
+    setAGuardar(true);
+    try {
+      await repor({ data: { slug: flowBase.slug } });
+      setRascunho({});
+      await guardadoQuery.refetch();
+      setMensagem("Fluxograma reposto na versão original.");
+    } catch {
+      setMensagem("Não foi possível repor.");
+    } finally {
+      setAGuardar(false);
+    }
+  }
+
   const idx = flows.findIndex((f) => f.slug === flow.slug);
   const anterior = idx > 0 ? flows[idx - 1] : undefined;
   const seguinte = idx < flows.length - 1 ? flows[idx + 1] : undefined;
