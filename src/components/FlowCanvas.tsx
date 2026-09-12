@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Flow, FlowNode } from "@/lib/flows";
 
 const estilos: Record<string, string> = {
@@ -85,7 +85,7 @@ export function FlowCanvas({
         </button>
         <button
           type="button"
-          onClick={() => setZoom(1)}
+          onClick={() => setZoom(zoomInicial)}
           className="rounded-md border border-border bg-surface px-3 py-1 text-sm hover:bg-muted"
         >
           Repor
