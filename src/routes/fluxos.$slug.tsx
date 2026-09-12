@@ -103,7 +103,47 @@ function PaginaFluxo() {
         {flow.nodes.length} passos · {flow.edges.length} ligações
       </p>
 
-      <FlowCanvas flow={flow} />
+      {admin ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-magenta px-3 py-1 text-xs font-semibold text-white">
+            Modo Administrador
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setEdicao((v) => !v);
+              setSelecionado(null);
+              setMensagem(null);
+            }}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            {edicao ? "Sair da edição" : "Editar este fluxograma"}
+          </button>
+        </div>
+      ) : null}
+
+      <FlowCanvas
+        flow={flow}
+        zoomInicial={override.zoom ?? 1}
+        corSeta={override.arrow?.color ?? "var(--color-turquesa)"}
+        espessuraSeta={override.arrow?.width ?? 1.6}
+        {...(edicao
+          ? { selecionado, onSelecionar: (id: string) => setSelecionado(id) }
+          : {})}
+      />
+
+      {admin && edicao ? (
+        <FlowEditorPanel
+          flow={flow}
+          override={rascunho}
+          selecionado={selecionado}
+          onAlterar={setRascunho}
+          onGuardar={aoGuardar}
+          onRepor={aoRepor}
+          aGuardar={aGuardar}
+          mensagem={mensagem}
+        />
+      ) : null}
 
       {ligacoes.length > 0 ? (
         <section className="mt-8" aria-labelledby="ligacoes">
