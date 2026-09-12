@@ -30,8 +30,23 @@ function caminho(a: FlowNode, b: FlowNode) {
   return `M ${saida} ${aySide} H ${mx} V ${bySide} H ${entrada}`;
 }
 
-export function FlowCanvas({ flow }: { flow: Flow }) {
-  const [zoom, setZoom] = useState(1);
+export function FlowCanvas({
+  flow,
+  zoomInicial = 1,
+  corSeta = "var(--color-turquesa)",
+  espessuraSeta = 1.6,
+  selecionado,
+  onSelecionar,
+}: {
+  flow: Flow;
+  zoomInicial?: number;
+  corSeta?: string;
+  espessuraSeta?: number;
+  selecionado?: string | null;
+  onSelecionar?: (id: string) => void;
+}) {
+  const [zoom, setZoom] = useState(zoomInicial);
+  const editavel = typeof onSelecionar === "function";
   const mapa = useMemo(
     () => new Map(flow.nodes.map((n) => [n.id, n])),
     [flow],
