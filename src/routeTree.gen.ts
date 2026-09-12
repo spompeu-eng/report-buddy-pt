@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as RelatorioRouteImport } from './routes/relatorio'
 import { Route as FluxosIndexRouteImport } from './routes/fluxos.index'
 import { Route as FluxosSlugRouteImport } from './routes/fluxos.$slug'
@@ -17,6 +18,11 @@ import { Route as FluxosSlugRouteImport } from './routes/fluxos.$slug'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RelatorioRoute = RelatorioRouteImport.update({
@@ -37,12 +43,14 @@ const FluxosSlugRoute = FluxosSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos/': typeof FluxosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos': typeof FluxosIndexRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/relatorio': typeof RelatorioRoute
   '/fluxos/$slug': typeof FluxosSlugRoute
   '/fluxos/': typeof FluxosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
+  fullPaths: '/' | '/admin' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos'
-  id: '__root__' | '/' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
+  to: '/' | '/admin' | '/relatorio' | '/fluxos/$slug' | '/fluxos'
+  id: '__root__' | '/' | '/admin' | '/relatorio' | '/fluxos/$slug' | '/fluxos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   RelatorioRoute: typeof RelatorioRoute
   FluxosSlugRoute: typeof FluxosSlugRoute
   FluxosIndexRoute: typeof FluxosIndexRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/relatorio': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   RelatorioRoute: RelatorioRoute,
   FluxosSlugRoute: FluxosSlugRoute,
   FluxosIndexRoute: FluxosIndexRoute,

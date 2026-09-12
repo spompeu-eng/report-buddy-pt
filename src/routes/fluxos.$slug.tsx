@@ -1,6 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 import { FlowCanvas } from "@/components/FlowCanvas";
+import { FlowEditorPanel } from "@/components/FlowEditorPanel";
 import { flowBySlug, flows } from "@/lib/flows";
+import { aplicarOverride, type FlowOverride } from "@/lib/overrides";
+import { useEstadoAdmin, useFlowOverride } from "@/lib/useFlowOverride";
+import { guardarOverride, reporOverride } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/fluxos/$slug")({
   loader: ({ params }) => {
@@ -24,7 +30,56 @@ export const Route = createFileRoute("/fluxos/$slug")({
 });
 
 function PaginaFluxo() {
-  const flow = Route.useLoaderData();
+  const flowBase = Route.useLoaderData();
+  const guardadoQuery = useFlowOverride(flowBase.slug);
+  const adminQuery = useEstadoAdmin();
+  const guardar = useServerFn(guardarOverride);
+  const repor = useServerFn(reporOverride);
+
+  const [edicao, setEdicao] = useState(false);
+  const [rascunho, setRascunho] = useState<FlowOverride>({});
+  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [aGuardar, setAGuardar] = useState(false);
+  const [mensagem, setMensagem] = useState<string | null>(null);
+
+  const guardado = guardadoQuery.data ?? {};
+  useEffect(() => {
+    if (!edicao) setRascunho(guardado);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guardadoQuery.dataUpdatedAt, edicao]);
+
+  const override = edicao ? rascunho : guardado;
+  const flow = aplicarOverride(flowBase, override);
+  const admin = adminQuery.data?.admin === true;
+
+  async function aoGuardar() {
+    setAGuardar(true);
+    setMensagem(null);
+    try {
+      await guardar({ data: { slug: flowBase.slug, override: rascunho } });
+      await guardadoQuery.refetch();
+      setMensagem("Alterações guardadas e visíveis para todos.");
+    } catch {
+      setMensagem("Não foi possível guardar. Verifique a sessão de administrador.");
+    } finally {
+      setAGuardar(false);
+    }
+  }
+
+  async function aoRepor() {
+    setAGuardar(true);
+    try {
+      await repor({ data: { slug: flowBase.slug } });
+      setRascunho({});
+      await guardadoQuery.refetch();
+      setMensagem("Fluxograma reposto na versão original.");
+    } catch {
+      setMensagem("Não foi possível repor.");
+    } finally {
+      setAGuardar(false);
+    }
+  }
+
   const idx = flows.findIndex((f) => f.slug === flow.slug);
   const anterior = idx > 0 ? flows[idx - 1] : undefined;
   const seguinte = idx < flows.length - 1 ? flows[idx + 1] : undefined;
@@ -48,7 +103,47 @@ function PaginaFluxo() {
         {flow.nodes.length} passos · {flow.edges.length} ligações
       </p>
 
-      <FlowCanvas flow={flow} />
+      {admin ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-magenta px-3 py-1 text-xs font-semibold text-white">
+            Modo Administrador
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setEdicao((v) => !v);
+              setSelecionado(null);
+              setMensagem(null);
+            }}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            {edicao ? "Sair da edição" : "Editar este fluxograma"}
+          </button>
+        </div>
+      ) : null}
+
+      <FlowCanvas
+        flow={flow}
+        zoomInicial={override.zoom ?? 1}
+        corSeta={override.arrow?.color ?? "var(--color-turquesa)"}
+        espessuraSeta={override.arrow?.width ?? 1.6}
+        {...(edicao
+          ? { selecionado, onSelecionar: (id: string) => setSelecionado(id) }
+          : {})}
+      />
+
+      {admin && edicao ? (
+        <FlowEditorPanel
+          flow={flow}
+          override={rascunho}
+          selecionado={selecionado}
+          onAlterar={setRascunho}
+          onGuardar={aoGuardar}
+          onRepor={aoRepor}
+          aGuardar={aGuardar}
+          mensagem={mensagem}
+        />
+      ) : null}
 
       {ligacoes.length > 0 ? (
         <section className="mt-8" aria-labelledby="ligacoes">

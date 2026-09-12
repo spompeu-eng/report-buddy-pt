@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Flow, FlowNode } from "@/lib/flows";
 
 const estilos: Record<string, string> = {
@@ -30,8 +30,24 @@ function caminho(a: FlowNode, b: FlowNode) {
   return `M ${saida} ${aySide} H ${mx} V ${bySide} H ${entrada}`;
 }
 
-export function FlowCanvas({ flow }: { flow: Flow }) {
-  const [zoom, setZoom] = useState(1);
+export function FlowCanvas({
+  flow,
+  zoomInicial = 1,
+  corSeta = "var(--color-turquesa)",
+  espessuraSeta = 1.6,
+  selecionado,
+  onSelecionar,
+}: {
+  flow: Flow;
+  zoomInicial?: number;
+  corSeta?: string;
+  espessuraSeta?: number;
+  selecionado?: string | null;
+  onSelecionar?: (id: string) => void;
+}) {
+  const [zoom, setZoom] = useState(zoomInicial);
+  const editavel = typeof onSelecionar === "function";
+  useEffect(() => setZoom(zoomInicial), [zoomInicial]);
   const mapa = useMemo(
     () => new Map(flow.nodes.map((n) => [n.id, n])),
     [flow],
@@ -70,7 +86,7 @@ export function FlowCanvas({ flow }: { flow: Flow }) {
         </button>
         <button
           type="button"
-          onClick={() => setZoom(1)}
+          onClick={() => setZoom(zoomInicial)}
           className="rounded-md border border-border bg-surface px-3 py-1 text-sm hover:bg-muted"
         >
           Repor
@@ -109,7 +125,7 @@ export function FlowCanvas({ flow }: { flow: Flow }) {
                   refY="4.5"
                   orient="auto"
                 >
-                  <path d="M0,0 L9,4.5 L0,9 z" fill="var(--color-turquesa)" />
+                  <path d="M0,0 L9,4.5 L0,9 z" fill={corSeta} />
                 </marker>
               </defs>
               {flow.edges.map((e, i) => {
@@ -121,8 +137,8 @@ export function FlowCanvas({ flow }: { flow: Flow }) {
                     <path
                       d={caminho(a, b)}
                       fill="none"
-                      stroke="var(--color-turquesa)"
-                      strokeWidth={1.6}
+                      stroke={corSeta}
+                      strokeWidth={espessuraSeta}
                       markerEnd="url(#seta)"
                     />
                     {e.l ? (
@@ -151,6 +167,21 @@ export function FlowCanvas({ flow }: { flow: Flow }) {
                 width: n.w,
                 height: n.h,
               } as const;
+              if (editavel) {
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => onSelecionar?.(n.id)}
+                    style={style}
+                    className={`${classes} cursor-pointer ${
+                      selecionado === n.id ? "ring-2 ring-magenta" : ""
+                    }`}
+                  >
+                    {n.t}
+                  </button>
+                );
+              }
               if (n.link) {
                 return (
                   <Link
