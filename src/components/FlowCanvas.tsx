@@ -47,6 +47,7 @@ export function FlowCanvas({
 }) {
   const [zoom, setZoom] = useState(zoomInicial);
   const editavel = typeof onSelecionar === "function";
+  useEffect(() => setZoom(zoomInicial), [zoomInicial]);
   const mapa = useMemo(
     () => new Map(flow.nodes.map((n) => [n.id, n])),
     [flow],
