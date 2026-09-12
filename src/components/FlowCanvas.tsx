@@ -124,7 +124,7 @@ export function FlowCanvas({
                   refY="4.5"
                   orient="auto"
                 >
-                  <path d="M0,0 L9,4.5 L0,9 z" fill="var(--color-turquesa)" />
+                  <path d="M0,0 L9,4.5 L0,9 z" fill={corSeta} />
                 </marker>
               </defs>
               {flow.edges.map((e, i) => {
@@ -136,8 +136,8 @@ export function FlowCanvas({
                     <path
                       d={caminho(a, b)}
                       fill="none"
-                      stroke="var(--color-turquesa)"
-                      strokeWidth={1.6}
+                      stroke={corSeta}
+                      strokeWidth={espessuraSeta}
                       markerEnd="url(#seta)"
                     />
                     {e.l ? (
@@ -166,6 +166,21 @@ export function FlowCanvas({
                 width: n.w,
                 height: n.h,
               } as const;
+              if (editavel) {
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => onSelecionar?.(n.id)}
+                    style={style}
+                    className={`${classes} cursor-pointer ${
+                      selecionado === n.id ? "ring-2 ring-magenta" : ""
+                    }`}
+                  >
+                    {n.t}
+                  </button>
+                );
+              }
               if (n.link) {
                 return (
                   <Link
